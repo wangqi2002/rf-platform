@@ -2,6 +2,7 @@
 node_modules
 /dist
 /app_client
+/serve-py/build
 
 
 # local env files
@@ -22,3 +23,4 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+*.spec
