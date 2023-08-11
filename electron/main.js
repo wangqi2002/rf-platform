@@ -1,6 +1,8 @@
 const { app, BrowserWindow, Menu, dialog, globalShortcut } = require('electron')
+const exec = require('child_process').exec;
 const path = require("path")
 
+const cmd = require('node-cmd');
 let mainWindow;
 
 Menu.setApplicationMenu(null)
@@ -20,7 +22,7 @@ const createWindow = () => {
         icon: path.resolve(__dirname, "../build/icon/icon-20.ico"),
     });
     mainWindow.maximize()
-    // 使用 loadURL 加载 http://localhost:9527 ，也就是 Vue 项目地址
+    // 使用 loadURL 加载 Vue项目地址
     mainWindow.loadURL("http://localhost:9527/");
 
     // 如果使用了 nginx 代理，url 改为代理地址
@@ -49,6 +51,13 @@ const createWindow = () => {
             });
     });
 };
+
+exec('python ' + path.resolve(__dirname, "../serve-py/serve.py"), function (error, stdout, stderr) {
+    if (error) {
+        console.info('stderr : ' + stderr);
+    }
+    console.log('exec: python finished ' + stdout);
+})
 
 // 限制只能打开一个窗口
 const gotTheLock = app.requestSingleInstanceLock();
@@ -80,3 +89,4 @@ if (!gotTheLock) {
 app.on("window-all-closed", () => {
     if (process.platform !== "darwin") app.quit();
 });
+
