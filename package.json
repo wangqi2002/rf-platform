@@ -1,0 +1,71 @@
+{
+    "name": "electron-vue-vite",
+    "description": "electron-vue-vite",
+    "author": "wang大可",
+    "private": true,
+    "version": "0.0.0",
+    "main": "electron/main.js",
+    "scripts": {
+        "dev": "vite",
+        "electron:dev": "concurrently vite \"electron .\"",
+        "build": "vite build",
+        "preview": "vite preview",
+        "electron:build": "npm run build && electron-builder",
+        "postinstall": "electron-builder install-app-deps"
+    },
+    "build": {
+        "appId": "B3058S",
+        "productName": "electron-vue-vite",
+        "copyright": "Copyright © year ${author}",
+        "directories": {
+            "output": "app_client"
+        },
+        "mac": {
+            "category": "public.app-category.music",
+            "icon": "build/icon/icon-256.ico",
+            "target": [
+                {
+                    "target": "dmg",
+                    "arch": [
+                        "x64"
+                    ]
+                },
+                {
+                    "target": "zip",
+                    "arch": [
+                        "x64"
+                    ]
+                }
+            ]
+        },
+        "win": {
+            "icon": "build/icon/icon-256.ico",
+            "target": [
+                {
+                    "target": "nsis",
+                    "arch": [
+                        "x64",
+                        "ia32"
+                    ]
+                }
+            ]
+        },
+        "nsis": {
+            "oneClick": false,
+            "allowElevation": true,
+            "allowToChangeInstallationDirectory": true,
+            "installerIcon": "build/icon/icon-256.ico",
+            "uninstallerIcon": "build/icon/un-icon-256.ico"
+        }
+    },
+    "dependencies": {
+        "vue": "^3.3.4"
+    },
+    "devDependencies": {
+        "@vitejs/plugin-vue": "^4.2.3",
+        "concurrently": "^8.2.0",
+        "electron": "^25.5.0",
+        "electron-builder": "^24.6.3",
+        "vite": "^4.4.5"
+    }
+}
