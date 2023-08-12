@@ -2,7 +2,6 @@
 # AUTO_AMP_serve.py
 import time
 import backoff
-from geventwebsocket import WebSocketError
 import serial
 import serial.tools.list_ports
 from threading import Thread

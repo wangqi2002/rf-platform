@@ -71,5 +71,5 @@ if __name__ == '__main__':
     http_server = WSGIServer(('0.0.0.0', 9090), app)
     http_server.serve_forever()
 
-# 打包
-# pyinstaller --uac-admin -w serve.py --distpath D:\Code\Vscode\rf-platform\app_client\win-unpacked\backend_dist --hidden-import=main
+# 打包, 全部打包之后将该文件放在安装目录中  win-unpacked\python-serve下
+# pyinstaller --uac-admin -w -F rfplatformServe.py --distpath D:\Code\Vscode\rf-platform\dist_python --hidden-import=main

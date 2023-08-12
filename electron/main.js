@@ -1,9 +1,11 @@
-const { app, BrowserWindow, Menu, dialog, globalShortcut } = require('electron')
-const exec = require('child_process').exec;
+const { app, BrowserWindow, Menu, dialog, protocol, globalShortcut } = require('electron')
 const path = require("path")
 
-const cmd = require('node-cmd');
+const cmd = require('node-cmd')
+
 let mainWindow;
+
+let currentPath = require("path").dirname(require('electron').app.getPath("exe"));
 
 Menu.setApplicationMenu(null)
 
@@ -23,13 +25,10 @@ const createWindow = () => {
     });
     mainWindow.maximize()
     // 使用 loadURL 加载 Vue项目地址
-    mainWindow.loadURL("http://localhost:9527/");
-
-    // 如果使用了 nginx 代理，url 改为代理地址
-    //   mainWindow.loadURL("https://example.com/");
+    // mainWindow.loadURL("http://localhost:9527/");
 
     //打包
-    // mainWindow.loadURL(`file://${path.join(__dirname, "../dist/index.html")}`);
+    mainWindow.loadURL(`file://${path.join(__dirname, "../dist/index.html")}`);
 
     mainWindow.on("close", (e) => {
         e.preventDefault();
@@ -46,18 +45,14 @@ const createWindow = () => {
                 if (res.response === 0) {
                     // e.preventDefault();
                     // mainWindow.destroy();
+                    // cmd.run(`taskkill /F /im rfplatformServe.exe /T`)
+                    cmd.run(`wmic process where name='rfplatformServe.exe' delete`)
+                    console.log('close')
                     app.exit(0);
                 }
             });
     });
 };
-
-exec('python ' + path.resolve(__dirname, "../serve-py/serve.py"), function (error, stdout, stderr) {
-    if (error) {
-        console.info('stderr : ' + stderr);
-    }
-    console.log('exec: python finished ' + stdout);
-})
 
 // 限制只能打开一个窗口
 const gotTheLock = app.requestSingleInstanceLock();
@@ -75,6 +70,14 @@ if (!gotTheLock) {
 
     // 在应用准备就绪时调用函数
     app.whenReady().then(() => {
+        console.log("now start service")
+        console.log(`${currentPath}\\python-serve\\rfplatformServe.exe`)
+        // 启动服务器exe
+        cmd.run(`${currentPath}\\python-serve\\rfplatformServe.exe`, function (err, data, stderr) {
+            console.log(data)
+            console.log(err)
+            console.log(stderr)
+        });
         globalShortcut.register('Alt+D', function () {
             mainWindow.webContents.openDevTools()
         })
@@ -87,6 +90,8 @@ if (!gotTheLock) {
 
 // 除了 macOS 外，当所有窗口都被关闭的时候退出程序。 因此，通常对程序和它们在任务栏上的图标来说，应当保持活跃状态，直到用户使用 Cmd + Q 退出。
 app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") app.quit();
+    if (process.platform !== "darwin") {
+        app.quit()
+    }
 });
 
