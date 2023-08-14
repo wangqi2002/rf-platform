@@ -34,18 +34,6 @@ threadInit = Thread(target=connect)
 threadInit.start()
 
 
-@RIGOL_DS4014_serve.route('/gcs1', methods=["GET"])
-def gcs1():
-    result = {'name': 'RIGOL_DS4014_serve', 'cs': request.values.get('cs')}
-    return jsonify(result)
-
-
-@RIGOL_DS4014_serve.route('/pcs1', methods=["POST"])
-def pcs1():
-    result = {'name': 'RIGOL_DS4014_serve', 'cs': request.json.get('cs')}
-    return jsonify(result)
-
-
 @RIGOL_DS4014_serve.route('/connectSign', methods=["GET"])
 def connectSign():
     if my_instrument is None:

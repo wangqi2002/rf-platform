@@ -38,18 +38,6 @@ threadInit = Thread(target=connect)
 threadInit.start()
 
 
-@AUTO_AMP_serve.route('/gcs1', methods=["GET"])
-def gcs1():
-    result = {'name': 'AUTO_AMP_serve', 'cs': request.values.get('cs')}
-    return jsonify(result)
-
-
-@AUTO_AMP_serve.route('/pcs1', methods=["POST"])
-def pcs1():
-    result = {'name': 'AUTO_AMP_serve', 'cs': request.json.get('cs')}
-    return jsonify(result)
-
-
 @AUTO_AMP_serve.route('/connectSign', methods=["GET"])
 def connectSign():
     if ser is None:
