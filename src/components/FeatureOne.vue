@@ -91,7 +91,7 @@
                 <span class="pilot_txt suc" v-if="flagFour">已连接</span>
                 <span class="pilot_txt err" v-else>未连接</span>
             </div>
-            <button class="instrument_btn" @click="handleCs">测试</button>
+            <button class="instrument_btn" @click="handleAMPivw">GET IVW</button>
         </div>
     </div>
     <div class="option">
@@ -179,8 +179,8 @@ const handleDGSetting = () => {
 const handleFPHSetting = () => {
     console.log('handleFPHSetting')
 }
-const handleCs = () => {
-    console.log("cs pooling")
+const handleAMPivw = () => {
+    console.log("pooling")
     ampApi.I()
         .then((res) => {
             console.log(res)

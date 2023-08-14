@@ -37,7 +37,7 @@ threadInit.start()
 
 @FPH_serve.route('/connectSign', methods=["GET"])
 def connectSign():
-    if my_instrument is None:
+    if (my_instrument is None):
         result = {'name': 'FPH', 'sign': False}
     else:
         result = {'name': 'FPH', 'sign': True}

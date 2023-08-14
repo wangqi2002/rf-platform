@@ -55,9 +55,9 @@ def getI():
     if com_input:   # 如果读取结果非空，则输出
         result = {'value': float(
             com_input[2:10]), 'unit': com_input[10:12].replace(' ', '')}
-        if result['unit'] == 'A':
+        if (result['unit'] == 'A'):
             result['value'] = result['value']*1e6
-        if result['unit'] == 'mA':
+        if (result['unit'] == 'mA'):
             result['value'] = result['value']*1e3
     return jsonify(result)
 

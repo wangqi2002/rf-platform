@@ -3,6 +3,7 @@ node_modules
 /dist
 /app_client
 /serve-py/build
+**/__pycache__
 
 
 # local env files

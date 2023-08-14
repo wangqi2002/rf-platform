@@ -36,7 +36,7 @@ threadInit.start()
 
 @RIGOL_DG4062_serve.route('/connectSign', methods=["GET"])
 def connectSign():
-    if my_instrument is None:
+    if (my_instrument is None):
         result = {'name': 'RIGOL_DG4062', 'sign': False}
     else:
         result = {'name': 'RIGOL_DG4062', 'sign': True}
@@ -80,7 +80,7 @@ def applySIN():
         my_instrument.write(command)
         time.sleep(0.1)
         value = my_instrument.query(":APPLy?")
-        if "SINusoid" in value:
+        if ("SINusoid" in value):
             result = {'code': '1', 'value': "设置正弦波成功"}
         else:
             result = {'code': '0', 'value': "设置正弦波失败"}

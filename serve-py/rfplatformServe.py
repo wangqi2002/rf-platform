@@ -36,22 +36,23 @@ def FeatureOne():
         # 直流电压、电流、功率计算
         DcVoltage = 1
         DcCurrent = 1
-        DcPower = DcVoltage*DcCurrent
+        DcPower = DcVoltage * DcCurrent
         # AUTO_AMP 电流测量
         auto_amp_I = json.loads(app.test_client().get(
             'http://localhost:9090/AUTO_AMP/I').text)
         if (auto_amp_I != {}):
-            auto_amp_I = auto_amp_I['value']
-        result['auto_amp_I'] = auto_amp_I
+            auto_amp_I = auto_amp_I['value'] * 1e-6
+            result['auto_amp_I'] = auto_amp_I
         # AUTO_AMP 电压测量
         auto_amp_V = json.loads(app.test_client().get(
             'http://localhost:9090/AUTO_AMP/V').text)
         if (auto_amp_V != {}):
             auto_amp_V = auto_amp_V['value']
-        result['auto_amp_V'] = auto_amp_V
+            result['auto_amp_V'] = auto_amp_V
         # 输出功率计算
-        auto_amp_P = 1e-6 * auto_amp_I * auto_amp_V
-        result['auto_amp_P'] = auto_amp_P
+        if ((auto_amp_I in result) and (auto_amp_V in result)):
+            auto_amp_P = auto_amp_I * auto_amp_V
+            result['auto_amp_P'] = auto_amp_P
         # 增益计算
         gain = 10 * math.log10(auto_amp_P / 0.001)-inputPower
         result['gain'] = gain
@@ -62,6 +63,9 @@ def FeatureOne():
         }
         harmonicWaveList = json.loads(app.test_client().get(
             url='http://localhost:9090/FPH/calculateMARKYR', params=params).text)
+        harmonicWavePoint=harmonicWaveList[-1]-harmonicWaveList[0]
+        result['harmonicWaveList'] = harmonicWaveList
+        result['harmonicWavePoint'] = harmonicWavePoint
     except requests.exceptions.RequestException as e:
         print(e)
     return jsonify(result)

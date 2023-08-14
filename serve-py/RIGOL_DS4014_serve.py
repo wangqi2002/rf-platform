@@ -36,7 +36,7 @@ threadInit.start()
 
 @RIGOL_DS4014_serve.route('/connectSign', methods=["GET"])
 def connectSign():
-    if my_instrument is None:
+    if (my_instrument is None):
         result = {'name': 'RIGOL_DS4014', 'sign': False}
     else:
         result = {'name': 'RIGOL_DS4014', 'sign': True}
