@@ -54,8 +54,9 @@ def FeatureOne():
             auto_amp_P = auto_amp_I * auto_amp_V
             result['auto_amp_P'] = auto_amp_P
         # 增益计算
-        gain = 10 * math.log10(auto_amp_P / 0.001)-inputPower
-        result['gain'] = gain
+        if (auto_amp_P in result):
+            gain = 10 * math.log10(auto_amp_P / 0.001)-inputPower
+            result['gain'] = gain
         # 效率计算
         # 谐波读取
         params = {
