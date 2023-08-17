@@ -1,6 +1,7 @@
 import { get, post, put, deleteJson } from '../util/axios'
 
 const fphApi = {
+    connect: (p) => post('/FPH/connect', p),
     connectSign: (p) => get('/FPH/connectSign', p),
     calculateMARKYR: (p) => get('/FPH/calculateMARKYR', p),
     frequencyCENT: (p) => post('/FPH/frequencyCENT', p),

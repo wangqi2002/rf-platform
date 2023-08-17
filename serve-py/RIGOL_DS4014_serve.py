@@ -13,14 +13,14 @@ cnt = 0
 
 
 @backoff.on_predicate(backoff.constant, jitter=None, interval=1)
-def connect():
+def connectPoll(url):
     global my_instrument
     global cnt
     cnt += 1
-    if (cnt < 20):
+    if (cnt < 5):
         try:
-            my_instrument = rm.open_resource(
-                'TCPIP0::192.168.2.4::inst0::INSTR')
+            my_instrument = rm.open_resource(url)
+            print(my_instrument.query("*IDN?"))
             return True
         except Exception:
             my_instrument = None
@@ -30,8 +30,13 @@ def connect():
         return True
 
 
-threadInit = Thread(target=connect)
-threadInit.start()
+@RIGOL_DS4014_serve.route('/connect', methods=["POST"])
+def connect():
+    resourceName = request.json.get('resource')
+    threadInit = Thread(target=connectPoll, args=(resourceName,))
+    threadInit.start()
+    result = {'name': 'RIGOL_DS4014', 'resource': resourceName}
+    return jsonify(result)
 
 
 @RIGOL_DS4014_serve.route('/connectSign', methods=["GET"])

@@ -13,15 +13,14 @@ cnt = 0
 
 
 @backoff.on_predicate(backoff.constant, jitter=None, interval=1)
-def connect():
+def connectPoll(url):
     global my_instrument
     global cnt
     cnt += 1
-    if (cnt < 20):
+    if (cnt < 5):
         try:
-            my_instrument = rm.open_resource(
-                'TCPIP0::192.168.2.11::inst0::INSTR')
-            print("FPH——连接成功")
+            my_instrument = rm.open_resource(url)
+            # print(my_instrument.query("*IDN?"))
             return True
         except Exception:
             my_instrument = None
@@ -30,9 +29,13 @@ def connect():
     else:
         return True
 
-
-threadInit = Thread(target=connect)
-threadInit.start()
+@FPH_serve.route('/connect', methods=["POST"])
+def connect():
+    resourceName = request.json.get('resource')
+    threadInit = Thread(target=connectPoll, args=(resourceName,))
+    threadInit.start()
+    result = {'name': 'FPH', 'resource': resourceName}
+    return jsonify(result)
 
 
 @FPH_serve.route('/connectSign', methods=["GET"])

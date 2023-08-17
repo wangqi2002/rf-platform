@@ -21,7 +21,8 @@ const msg = ref('hello world')
 
 
 const handleFeature = () => {
-  console.log(appApi.FeatureOne())
+  // console.log(appApi.FeatureOne())
+  console.log(rigol_dg4062.connect({ resource: 'TCPIP0::192.168.2.15::inst0::INSTR' }))
 }
 onMounted(() => {
 })

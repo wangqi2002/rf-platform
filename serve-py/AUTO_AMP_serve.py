@@ -13,29 +13,37 @@ cnt = 0
 
 
 @backoff.on_predicate(backoff.constant, jitter=None, interval=3)
-def connect():
+def connectPoll():
     global ser
-    try:
-        ser = serial.Serial(port="COM3",
-                            baudrate=9600,
-                            bytesize=serial.EIGHTBITS,
-                            stopbits=serial.STOPBITS_ONE,
-                            timeout=1)
+    global cnt
+    cnt += 1
+    if (cnt < 5):
+        try:
+            ser = serial.Serial(port="COM3",
+                                baudrate=9600,
+                                bytesize=serial.EIGHTBITS,
+                                stopbits=serial.STOPBITS_ONE,
+                                timeout=1)
 
-        if ser.isOpen():                        # 判断串口是否成功打开
-            print("打开串口成功。")
-            print(ser.name)    # 输出串口号
-            return True
-        else:
-            print("打开串口失败。")
+            if ser.isOpen():                        # 判断串口是否成功打开
+                print("打开串口成功。")
+                print(ser.name)    # 输出串口号
+                return True
+            else:
+                print("打开串口失败。")
+                return False
+        except Exception:
+            # print("AUTO_AMP连接失败")
             return False
-    except Exception:
-        # print("AUTO_AMP连接失败")
-        return False
+    else:
+        return True
 
-
-threadInit = Thread(target=connect)
-threadInit.start()
+@AUTO_AMP_serve.route('/connect', methods=["POST"])
+def connect():
+    threadInit = Thread(target=connectPoll)
+    threadInit.start()
+    result = {'name': 'AUTO_AMP'}
+    return jsonify(result)
 
 
 @AUTO_AMP_serve.route('/connectSign', methods=["GET"])

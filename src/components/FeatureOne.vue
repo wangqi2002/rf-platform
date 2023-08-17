@@ -9,6 +9,10 @@
                     <span class="pilot_txt err" v-else>未连接</span>
                 </div>
                 <div>
+                    资源名称：<input class="parameterInput" v-model="DGVisaValue" />
+                    <button class="con_btn" @click="handleDGConnect">连接</button>
+                </div>
+                <div>
                     输出阻抗：<input class="parameterInput" type="number" v-model="outputIMPValue" />
                 </div>
                 <div>
@@ -52,6 +56,10 @@
                     <span class="pilot_txt err" v-else>未连接</span>
                 </div>
                 <div>
+                    资源名称：<input class="parameterInput" v-model="DSVisaValue" />
+                    <button class="con_btn" @click="handleDSConnect">连接</button>
+                </div>
+                <div>
                     参数：<input class="parameterInput" type="number" v-model="parameter" />
                 </div>
                 <div>
@@ -70,6 +78,10 @@
                     <div :class="pilotModleThree"></div>
                     <span class="pilot_txt suc" v-if="flagThree">已连接</span>
                     <span class="pilot_txt err" v-else>未连接</span>
+                </div>
+                <div>
+                    资源名称：<input class="parameterInput" v-model="FPHVisaValue" />
+                    <button class="con_btn" @click="handleFPHConnect">连接</button>
                 </div>
                 <div>
                     中心频率：<input class="parameterInput" type="number" v-model="freqCenterValue" />
@@ -92,6 +104,8 @@
                     <span class="pilot_txt suc" v-if="flagFour">已连接</span>
                     <span class="pilot_txt err" v-else>未连接</span>
                 </div>
+                <button class="instrument_btn" style="background-color: #daffe0" @click="handleAMPConnect">连接</button>
+                <br />
                 <button class="instrument_btn" @click="handleAMPivw">GET IVW</button>
             </div>
         </div>
@@ -133,6 +147,10 @@ const parameter = ref('')
 
 const dialogVisible = ref(false)
 
+const DGVisaValue = ref('TCPIP0::192.168.2.15::inst0::INSTR')
+const DSVisaValue = ref('')
+const FPHVisaValue = ref('')
+
 const pilotModleOne = ref('pilot_err')
 const flagOne = ref(false)
 const outputIMPValue = ref('')
@@ -159,6 +177,24 @@ const markNumValue = ref(3)
 const pilotModleFour = ref('pilot_err')
 const flagFour = ref(false)
 
+const handleDGConnect = () => {
+    console.log("handleDGConnect")
+    console.log(rigol_dg4062.connect({ resource: DGVisaValue.value }))
+    pilotInitializeOne()
+}
+const handleDSConnect = () => {
+    console.log("handleDSConnect")
+    pilotInitializeTwo()
+}
+const handleFPHConnect = () => {
+    console.log("handleFPHConnect")
+    pilotInitializeThree()
+}
+const handleAMPConnect = () => {
+    console.log("handleAMPConnect")
+    console.log(ampApi.connect())
+    pilotInitializeFour()
+}
 const handleDialog = () => {
     dialogVisible.value = true
     getTableHeader()
@@ -224,10 +260,10 @@ const handleDGSetting = () => {
         sign: outputIMPPicked.value,
         impedance: outputIMPValue.value
     }))
-    console.log(rigol_dg4062.output({
-        sign: outputIMPPicked.value,
-        state: 'ON'
-    }))
+    // console.log(rigol_dg4062.output({
+    //     sign: outputIMPPicked.value,
+    //     state: 'ON'
+    // }))
 }
 const handleFPHSetting = () => {
     console.log('handleFPHSetting')
@@ -257,7 +293,6 @@ const pilotInitializeOne = () => {
         setTimeout(() => {
             rigol_dg4062.connectSign()
                 .then((res) => {
-                    // console.log(res)
                     if (res.sign) {
                         clearInterval(timer)
                         pilotModleOne.value = 'pilot_suc'
@@ -360,10 +395,10 @@ const pilotInitializeFour = () => {
 }
 
 onMounted(() => {
-    pilotInitializeOne()
-    pilotInitializeTwo()
-    pilotInitializeThree()
-    pilotInitializeFour()
+    // pilotInitializeOne()
+    // pilotInitializeTwo()
+    // pilotInitializeThree()
+    // pilotInitializeFour()
 })
 
 // 内部调用
@@ -446,7 +481,7 @@ const getTableHeader = () => {
     }
     setTimeout(() => {
         emitter.emit("setHeader", tableHeader)
-    }, 500)
+    }, 300)
 }
 </script>
 
@@ -483,12 +518,18 @@ const getTableHeader = () => {
             font-size: 18px;
         }
 
+        .con_btn {
+            border: 1px solid #a1a1a1;
+            border-radius: 5px;
+            background-color: #daffe0;
+        }
+
         .parameterInput {
             width: 70px;
             height: 25px;
             margin: 10px;
             padding: 0 10px;
-            border: 1px solid black;
+            border: 1px solid #858585;
             border-radius: 5px;
         }
 
