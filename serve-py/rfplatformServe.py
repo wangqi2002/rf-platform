@@ -9,6 +9,7 @@ from FPH_serve import FPH_serve
 from RIGOL_DG4062_serve import RIGOL_DG4062_serve
 from RIGOL_DS4014_serve import RIGOL_DS4014_serve
 from AUTO_AMP_serve import AUTO_AMP_serve
+from ACS758_serve import ACS758_serve
 
 # monkey.patch_all()
 app = Flask(__name__)
@@ -16,16 +17,19 @@ app.register_blueprint(FPH_serve, url_prefix='/FPH')
 app.register_blueprint(RIGOL_DG4062_serve, url_prefix='/RIGOL_DG4062')
 app.register_blueprint(RIGOL_DS4014_serve, url_prefix='/RIGPL_DS4014')
 app.register_blueprint(AUTO_AMP_serve, url_prefix='/AUTO_AMP')
+app.register_blueprint(ACS758_serve, url_prefix='/ACS758')
 
 cors = CORS(app)
 
 
 @app.route('/FeatureOne', methods=["GET"])
 def FeatureOne():
+    freq = request.values.get('frequency')
     inputPower = request.values.get('DG_InputPower')
     markNum = request.values.get('FPH_MarkNum')
     result = {}
     try:
+        result['DcCurrent'] = DcCurrent
         # 入射、反射功率计算
         reflectedPower = 1
         incidentPower = 1
@@ -34,14 +38,24 @@ def FeatureOne():
         Standing_waveRatio = (1+reflectionCoefficient) / \
             (1-reflectionCoefficient)
         # 直流电压、电流、功率计算
-        DcVoltage = 1
-        DcCurrent = 1
-        DcPower = DcVoltage * DcCurrent
+        DcCurrent = json.loads(app.test_client().get(
+            'http://localhost:9090/ACS758/I').text)
+        if (DcCurrent != {}):
+            DcCurrent = DcCurrent['value']
+            result['DcCurrent'] = DcCurrent
+        DcVoltage = json.loads(app.test_client().get(
+            'http://localhost:9090/ACS758/V').text)
+        if (DcVoltage != {}):
+            DcVoltage = DcVoltage['value']
+            result['DcVoltage'] = DcVoltage
+        if ((DcCurrent in result) and (DcVoltage in result)):
+            DcPower = DcCurrent * DcVoltage
+            result['DcPower'] = DcPower
         # AUTO_AMP 电流测量
         auto_amp_I = json.loads(app.test_client().get(
             'http://localhost:9090/AUTO_AMP/I').text)
         if (auto_amp_I != {}):
-            auto_amp_I = auto_amp_I['value'] * 1e-6
+            auto_amp_I = auto_amp_I['value']
             result['auto_amp_I'] = auto_amp_I
         # AUTO_AMP 电压测量
         auto_amp_V = json.loads(app.test_client().get(
@@ -77,4 +91,4 @@ if __name__ == '__main__':
     http_server.serve_forever()
 
 # 打包, 全部打包之后将该文件放在安装目录中  win-unpacked\python-serve下
-# pyinstaller --uac-admin -w -F rfplatformServe.py --distpath D:\Code\Vscode\rf-platform\dist_python --hidden-import=main
+# pyinstaller --uac-admin -w -F rfplatformServe.py --distpath D:\Code\Vscode\rf-platform\python-serve --hidden-import=main

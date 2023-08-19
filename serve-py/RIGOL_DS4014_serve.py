@@ -17,16 +17,18 @@ def connectPoll(url):
     global my_instrument
     global cnt
     cnt += 1
-    if (cnt < 5):
+    if (cnt < 2):
         try:
             my_instrument = rm.open_resource(url)
             print(my_instrument.query("*IDN?"))
+            cnt = 0
             return True
         except Exception:
             my_instrument = None
             # print("RIGOL_DS4014——连接失败")
             return False
     else:
+        cnt = 0
         return True
 
 

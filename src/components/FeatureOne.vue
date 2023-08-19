@@ -1,7 +1,7 @@
 <template>
     <div class="Feature">
         <div class="Feature_one">
-            <div class="one">
+            <div class="instrument">
                 <div class="instrument_name">RIGOL_DG4062</div>
                 <div class="pilot_box">
                     <div :class="pilotModleOne"></div>
@@ -48,7 +48,7 @@
                 </div>
                 <button class="instrument_btn" @click="handleDGSetting">设置</button>
             </div>
-            <div class="two">
+            <div class="instrument">
                 <div class="instrument_name">RIGOL_DS4014</div>
                 <div class="pilot_box">
                     <div :class="pilotModleTwo"></div>
@@ -72,7 +72,7 @@
                     参数：<input class="parameterInput" type="number" v-model="parameter" />
                 </div>
             </div>
-            <div class="three">
+            <div class="instrument">
                 <div class="instrument_name">FPH</div>
                 <div class="pilot_box">
                     <div :class="pilotModleThree"></div>
@@ -97,16 +97,31 @@
                 </div>
                 <button class="instrument_btn" @click="handleFPHSetting">设置</button>
             </div>
-            <div class="four">
+            <div class="instrument">
                 <div class="instrument_name">AUTO_AMP</div>
                 <div class="pilot_box">
                     <div :class="pilotModleFour"></div>
                     <span class="pilot_txt suc" v-if="flagFour">已连接</span>
                     <span class="pilot_txt err" v-else>未连接</span>
                 </div>
-                <button class="instrument_btn" style="background-color: #daffe0" @click="handleAMPConnect">连接</button>
-                <br />
+                <div>
+                    资源名称：<input class="parameterInput" v-model="AMPVisaValue" />
+                    <button class="con_btn" @click="handleAMPConnect">连接</button>
+                </div>
                 <button class="instrument_btn" @click="handleAMPivw">GET IVW</button>
+            </div>
+            <div class="instrument">
+                <div class="instrument_name">ACS758</div>
+                <div class="pilot_box">
+                    <div :class="pilotModleFive"></div>
+                    <span class="pilot_txt suc" v-if="flagFive">已连接</span>
+                    <span class="pilot_txt err" v-else>未连接</span>
+                </div>
+                <div>
+                    资源名称：<input class="parameterInput" v-model="ACSVisaValue" />
+                    <button class="con_btn" @click="handleACSConnect">连接</button>
+                </div>
+                <button class="instrument_btn" @click="handleACSivw">GET IVW</button>
             </div>
         </div>
         <div class="option">
@@ -133,6 +148,7 @@ import DataTable from '../components/DataTable.vue'
 import { ref, onMounted, getCurrentInstance } from "vue"
 import fphApi from "../api/fphApi"
 import ampApi from "../api/ampApi"
+import acsApi from "../api/acsApi"
 import rigol_dg4062 from "../api/rigol_dg4062"
 import rigol_ds4014 from "../api/rigol_ds4014"
 import { sleep, formatter, dBmToVpp } from "../util/tool"
@@ -140,6 +156,7 @@ import emitter from "../util/mittBus.js"
 
 const { proxy } = getCurrentInstance()
 const wrapCount = 2
+const wrapTime = 3000
 const DG4062 = {}
 const DS4014 = {}
 const FPH = {}
@@ -150,6 +167,8 @@ const dialogVisible = ref(false)
 const DGVisaValue = ref('TCPIP0::192.168.2.15::inst0::INSTR')
 const DSVisaValue = ref('')
 const FPHVisaValue = ref('')
+const AMPVisaValue = ref('')
+const ACSVisaValue = ref('')
 
 const pilotModleOne = ref('pilot_err')
 const flagOne = ref(false)
@@ -177,24 +196,9 @@ const markNumValue = ref(3)
 const pilotModleFour = ref('pilot_err')
 const flagFour = ref(false)
 
-const handleDGConnect = () => {
-    console.log("handleDGConnect")
-    console.log(rigol_dg4062.connect({ resource: DGVisaValue.value }))
-    pilotInitializeOne()
-}
-const handleDSConnect = () => {
-    console.log("handleDSConnect")
-    pilotInitializeTwo()
-}
-const handleFPHConnect = () => {
-    console.log("handleFPHConnect")
-    pilotInitializeThree()
-}
-const handleAMPConnect = () => {
-    console.log("handleAMPConnect")
-    console.log(ampApi.connect())
-    pilotInitializeFour()
-}
+const pilotModleFive = ref('pilot_err')
+const flagFive = ref(false)
+
 const handleDialog = () => {
     dialogVisible.value = true
     getTableHeader()
@@ -227,26 +231,6 @@ const handleClose = () => {
             console.log('取消')
         })
 }
-const handleOptionOne = async () => {
-    dialogVisible.value = true
-    console.log('handleOptionOne', DG4062)
-    for (let i = DG4062.startFREQ; i <= DG4062.endFREQ; i += DG4062.stepFREQ) {
-        for (let j = DG4062.startAMPL; j <= DG4062.endAMPL; j += DG4062.stepAMPL) {
-            console.log(i, Number(formatter(3).format(j)))
-            let sign = await sleep(1000, rigol_dg4062.applySIN, {
-                frequency: i,
-                amplitude: Number(formatter(3).format(j)),
-                skew: DG4062.skew,
-                phase: DG4062.phase
-            })
-            console.log(sign)
-            emitter.emit('featureOneResult', sign)
-            // if (!Number(sign.code)) {
-            //     break;
-            // }
-        }
-    }
-}
 const handleDGSetting = () => {
     DG4062.startFREQ = frequencySTAValue.value
     DG4062.endFREQ = frequencyENDValue.value
@@ -269,7 +253,7 @@ const handleFPHSetting = () => {
     console.log('handleFPHSetting')
 }
 const handleAMPivw = () => {
-    console.log("pooling")
+    console.log("AMP  pooling")
     ampApi.I()
         .then((res) => {
             console.log(res)
@@ -284,6 +268,67 @@ const handleAMPivw = () => {
         .catch((err) => {
             console.log(err)
         })
+}
+const handleACSivw = () => {
+    console.log("ACS  pooling")
+    acsApi.I()
+        .then((res) => {
+            console.log(res)
+        })
+        .catch((err) => {
+            console.log(err)
+        })
+    acsApi.V()
+        .then((res) => {
+            console.log(res)
+        })
+        .catch((err) => {
+            console.log(err)
+        })
+}
+const handleOptionOne = async () => {
+    dialogVisible.value = true
+    console.log('handleOptionOne', DG4062)
+    for (let i = DG4062.startFREQ; i <= DG4062.endFREQ; i += DG4062.stepFREQ) {
+        for (let j = DG4062.startAMPL; j <= DG4062.endAMPL; j += DG4062.stepAMPL) {
+            console.log(i, Number(formatter(3).format(dBmToVpp(j))))
+            let sign = await sleep(5000, rigol_dg4062.applySIN, {
+                frequency: i,
+                amplitude: Number(formatter(3).format(dBmToVpp(j))),
+                skew: DG4062.skew,
+                phase: DG4062.phase
+            })
+            console.log(sign)
+            emitter.emit('featureOneResult', sign)
+            // if (!Number(sign.code)) {
+            //     break;
+            // }
+        }
+    }
+}
+
+const handleDGConnect = () => {
+    console.log("handleDGConnect")
+    console.log(rigol_dg4062.connect({ resource: DGVisaValue.value }))
+    pilotInitializeOne()
+}
+const handleDSConnect = () => {
+    console.log("handleDSConnect")
+    pilotInitializeTwo()
+}
+const handleFPHConnect = () => {
+    console.log("handleFPHConnect")
+    pilotInitializeThree()
+}
+const handleAMPConnect = () => {
+    console.log("handleAMPConnect")
+    console.log(ampApi.connect({ port: AMPVisaValue.value }))
+    pilotInitializeFour()
+}
+const handleACSConnect = () => {
+    console.log("handleACSConnect")
+    console.log(acsApi.connect({ port: ACSVisaValue.value }))
+    pilotInitializeFive()
 }
 
 const pilotInitializeOne = () => {
@@ -310,7 +355,7 @@ const pilotInitializeOne = () => {
                 })
         }, 0)
         count++
-    }, 5000)
+    }, wrapTime)
 }
 const pilotInitializeTwo = () => {
     let timer = null
@@ -337,7 +382,7 @@ const pilotInitializeTwo = () => {
                 })
         }, 0)
         count++
-    }, 5000)
+    }, wrapTime)
 }
 const pilotInitializeThree = () => {
     let timer = null
@@ -364,7 +409,7 @@ const pilotInitializeThree = () => {
                 })
         }, 0)
         count++
-    }, 5000)
+    }, wrapTime)
 }
 const pilotInitializeFour = () => {
     let timer = null
@@ -391,7 +436,34 @@ const pilotInitializeFour = () => {
                 })
         }, 0)
         count++
-    }, 5000)
+    }, wrapTime)
+}
+const pilotInitializeFive = () => {
+    let timer = null
+    let count = 0
+    timer = setInterval(() => {
+        setTimeout(() => {
+            acsApi.connectSign()
+                .then((res) => {
+                    // console.log(res)
+                    if (res.sign) {
+                        clearInterval(timer)
+                        pilotModleFive.value = 'pilot_suc'
+                        flagFive.value = true
+                    }
+                    if (count > wrapCount) {
+                        clearInterval(timer)
+                    }
+                })
+                .catch((err) => {
+                    if (count > wrapCount) {
+                        clearInterval(timer)
+                    }
+                    console.log(err)
+                })
+        }, 0)
+        count++
+    }, wrapTime)
 }
 
 onMounted(() => {
@@ -399,6 +471,7 @@ onMounted(() => {
     // pilotInitializeTwo()
     // pilotInitializeThree()
     // pilotInitializeFour()
+    // pilotInitializeFive()
 })
 
 // 内部调用
@@ -489,93 +562,82 @@ const getTableHeader = () => {
 .Feature {
     .Feature_one {
         width: 100%;
-        height: 100%;
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        grid-template-rows: 500px;
-        gap: 10px;
+        min-width: 1400px;
+        height: 650px;
 
-        .one {
-            background-color: aliceblue;
-        }
+        .instrument {
+            width: 250px;
+            height: 100%;
+            margin: 0 10px;
+            background-color: #008B8B;
+            display: inline-block;
+            vertical-align: middle;
 
-        .two {
-            background-color: darkcyan;
-        }
-
-        .three {
-            background-color: sandybrown;
-        }
-
-        .four {
-            background-color: lavenderblush;
-        }
-
-
-        .instrument_name {
-            width: 100%;
-            margin-top: 10px;
-            font-size: 18px;
-        }
-
-        .con_btn {
-            border: 1px solid #a1a1a1;
-            border-radius: 5px;
-            background-color: #daffe0;
-        }
-
-        .parameterInput {
-            width: 70px;
-            height: 25px;
-            margin: 10px;
-            padding: 0 10px;
-            border: 1px solid #858585;
-            border-radius: 5px;
-        }
-
-        .instrument_btn {
-            width: 100px;
-            height: 25px;
-            border: none;
-            border-radius: 5px;
-            margin-top: 10px;
-            background-color: rosybrown;
-        }
-
-        .pilot_box {
-            width: 100%;
-            margin: 10px auto;
-            height: 30px;
-
-            .pilot_suc {
-                width: 20px;
-                height: 20px;
-                border-radius: 50%;
-                display: inline-block;
-                vertical-align: middle;
-                margin-right: 12px;
-                background-color: greenyellow;
-                box-shadow: 0 0 3px greenyellow,
-                    0 0 6px greenyellow,
-                    0 0 9px greenyellow;
+            .instrument_name {
+                width: 100%;
+                margin-top: 10px;
+                font-size: 18px;
             }
 
-            .pilot_err {
-                width: 20px;
-                height: 20px;
-                border-radius: 50%;
-                display: inline-block;
-                vertical-align: middle;
-                margin-right: 12px;
-                background-color: red;
-                box-shadow: 0 0 3px red,
-                    0 0 6px red,
-                    0 0 9px red;
+            .con_btn {
+                border: 1px solid #a1a1a1;
+                border-radius: 5px;
+                background-color: #daffe0;
             }
 
-            .pilot_txt {
-                font-size: 16px;
-                vertical-align: middle;
+            .parameterInput {
+                width: 70px;
+                height: 25px;
+                margin: 10px;
+                padding: 0 10px;
+                border: 1px solid #858585;
+                border-radius: 5px;
+            }
+
+            .instrument_btn {
+                width: 100px;
+                height: 25px;
+                border: none;
+                border-radius: 5px;
+                margin-top: 10px;
+                background-color: rosybrown;
+            }
+
+            .pilot_box {
+                width: 100%;
+                margin: 10px auto;
+                height: 30px;
+
+                .pilot_suc {
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 50%;
+                    display: inline-block;
+                    vertical-align: middle;
+                    margin-right: 12px;
+                    background-color: greenyellow;
+                    box-shadow: 0 0 3px greenyellow,
+                        0 0 6px greenyellow,
+                        0 0 9px greenyellow;
+                }
+
+                .pilot_err {
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 50%;
+                    display: inline-block;
+                    vertical-align: middle;
+                    margin-right: 12px;
+                    background-color: red;
+                    box-shadow: 0 0 3px red,
+                        0 0 6px red,
+                        0 0 9px red;
+                }
+
+                .pilot_txt {
+                    font-size: 16px;
+                    vertical-align: middle;
+                }
             }
         }
     }

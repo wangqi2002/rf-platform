@@ -1,6 +1,6 @@
 {
-    "name": "electron-vue-vite",
-    "description": "electron-vue-vite",
+    "name": "rf-platform",
+    "description": "rf-platform",
     "author": "wang大可",
     "private": true,
     "version": "0.0.0",
@@ -16,7 +16,7 @@
     },
     "build": {
         "appId": "B3058S",
-        "productName": "electron-vue-vite",
+        "productName": "rf-platform",
         "copyright": "Copyright © year ${author}",
         "directories": {
             "output": "app_client"
