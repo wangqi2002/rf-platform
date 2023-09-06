@@ -55,9 +55,9 @@ def frequencyCENT():
     command = "FREQ:CENT {0}".format(cent)
     try:
         my_instrument.write(command)
-        result = {'code': '1', 'value': "设置中心频率命令收到"}
+        result = {'code': 1, 'value': "设置中心频率命令收到"}
     except Exception:
-        result = {'code': '0', 'value': "设备未连接"}
+        result = {'code': 0, 'value': "设备未连接"}
     return jsonify(result)
 
 
@@ -67,9 +67,9 @@ def frequencyCENTStep():
     command = "FREQ:CENT:STEP {0}".format(step)
     try:
         my_instrument.write(command)
-        result = {'code': '1', 'value': "设置中心频率步长命令收到"}
+        result = {'code': 1, 'value': "设置中心频率步长命令收到"}
     except Exception:
-        result = {'code': '0', 'value': "设备未连接"}
+        result = {'code': 0, 'value': "设备未连接"}
     return jsonify(result)
 
 
@@ -79,9 +79,9 @@ def frequencySPAN():
     command = "FREQ:SPAN {0}".format(span)
     try:
         my_instrument.write(command)
-        result = {'code': '1', 'value': "设置频率范围命令收到"}
+        result = {'code': 1, 'value': "设置频率范围命令收到"}
     except Exception:
-        result = {'code': '0', 'value': "设备未连接"}
+        result = {'code': 0, 'value': "设备未连接"}
     return jsonify(result)
 
 
@@ -92,9 +92,9 @@ def frequencyRANGE():
     command = "SENSe:FREQ:STAR {0};STOP {1}".format(start, end)
     try:
         my_instrument.write(command)
-        result = {'code': '1', 'value': "设置测量频率范围命令收到"}
+        result = {'code': 1, 'value': "设置测量频率范围命令收到"}
     except Exception:
-        result = {'code': '0', 'value': "设备未连接"}
+        result = {'code': 0, 'value': "设备未连接"}
     return jsonify(result)
 
 
@@ -107,9 +107,9 @@ def calculateMARKXW():
         for i in range(1, num):
             command = "CALC:MARK{0}:X {1}".format(i, start+step*(i-1))
             my_instrument.write(command)
-        result = {'code': '1', 'value': "设置标记定位命令收到"}
+        result = {'code': 1, 'value': "设置标记定位命令收到"}
     except Exception:
-        result = {'code': '0', 'value': "设备未连接"}
+        result = {'code': 0, 'value': "设备未连接"}
     return jsonify(result)
 
 
@@ -117,14 +117,15 @@ def calculateMARKXW():
 def calculateMARKYR():
     # CALC:MARK2:Y?
     num = request.values.get('num')
+    print(num)
     command = "CALC:MARK{0}:Y?".format(num)
     result = []
     # todo 检查是否有单位
     try:
         for i in range(1, num):
             command = "CALC:MARK{0}:Y?".format(i)
-            obj = {'id': i, 'value': float(my_instrument.query(command))}
+            obj = {'code': 1, 'id': i, 'value': float(my_instrument.query(command))}
             result.append(obj)
     except Exception:
-        result.append({'code': '0', 'value': "设备未连接"})
+        result.append({'code': 0, 'value': "设备未连接"})
     return jsonify(result)

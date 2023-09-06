@@ -26,7 +26,7 @@ const formatter = (digit) => {
 function dBmToVpp(amplitude) {
     let d = amplitude;
     let R = 50;
-    if (d < 0 || amplitude == "" || amplitude == undefined) {
+    if (amplitude === "" || amplitude == undefined) {
         d = 1;
     }
     let k1 = d / 10

@@ -57,9 +57,9 @@ def outputIMP():
     command = ":OUTPut{0}:IMPedance {1}".format(sign, i)
     try:
         my_instrument.write(command)
-        result = {'code': '1', 'value': "设置阻抗命令收到"}
+        result = {'code': 1, 'value': "设置阻抗命令收到"}
     except Exception:
-        result = {'code': '0', 'value': "设备未连接"}
+        result = {'code': 0, 'value': "设备未连接"}
     return jsonify(result)
 
 
@@ -70,9 +70,9 @@ def output():
     command = ":OUTPut{0} {1}".format(sign, state)
     try:
         my_instrument.write(command)
-        result = {'code': '1', 'value': "输出命令收到"}
+        result = {'code': 1, 'value': "输出命令收到"}
     except Exception:
-        result = {'code': '0', 'value': "设备未连接"}
+        result = {'code': 0, 'value': "设备未连接"}
     return jsonify(result)
 
 
@@ -87,11 +87,12 @@ def applySIN():
         my_instrument.write(command)
         time.sleep(0.1)
         value = my_instrument.query(":APPLy?")
-        if ("SINusoid" in value):
-            result = {'code': '1', 'value': "设置正弦波成功"}
+        # print(value)
+        if ("SIN" in value):
+            result = {'code': 1, 'value': "设置正弦波成功"}
         else:
-            result = {'code': '0', 'value': "设置正弦波失败"}
+            result = {'code': 0, 'value': "设置正弦波失败"}
     except Exception:
-        result = {'code': '0', 'value': "设备未连接"}
+        result = {'code': 0, 'value': "设备未连接"}
 
     return jsonify(result)

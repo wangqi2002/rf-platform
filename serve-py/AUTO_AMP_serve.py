@@ -65,24 +65,31 @@ def connectSign():
 
 @AUTO_AMP_serve.route('/I', methods=["GET"])
 def getI():
-    com_input = ser.read_until(expected=b'\n')
-    com_input = com_input.decode()
     result = {}
-    if com_input:   # 如果读取结果非空，则输出
-        result = {'value': float(
-            com_input[2:10]), 'unit': com_input[10:12].replace(' ', '')}
-        if (result['unit'] == 'mA'):
-            result['value'] = result['value']*1e-3
-        if (result['unit'] == 'uA'):
-            result['value'] = result['value']*1e-6
+    try:
+        com_input = ser.read_until(expected=b'\n')
+        com_input = com_input.decode()
+        if com_input:   # 如果读取结果非空，则输出
+            result = {'code': 1,'value': float(
+                com_input[2:10]), 'unit': com_input[10:12].replace(' ', '')}
+            if (result['unit'] == 'mA'):
+                result['value'] = result['value']*1e-3
+            if (result['unit'] == 'uA'):
+                result['value'] = result['value']*1e-6
+    except Exception:
+        result = {'code': 0, 'value': "设备未连接"}
     return jsonify(result)
 
 
 @AUTO_AMP_serve.route('/V', methods=["GET"])
 def getV():
-    com_input = ser.read_until(expected=b'\n')
-    com_input = com_input.decode()
     result = {}
-    if com_input:   # 如果读取结果非空，则输出
-        result = {'value': float(com_input[-11:-3]), 'unit': 'V'}
+    try:
+        com_input = ser.read_until(expected=b'\n')
+        com_input = com_input.decode()
+        result = {}
+        if com_input:   # 如果读取结果非空，则输出
+            result = {'code': 1,'value': float(com_input[-11:-3]), 'unit': 'V'}
+    except Exception:
+        result = {'code': 0, 'value': "设备未连接"}
     return jsonify(result)

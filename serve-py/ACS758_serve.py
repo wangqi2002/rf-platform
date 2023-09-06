@@ -64,22 +64,28 @@ def connectSign():
 
 @ACS758_serve.route('/I', methods=["GET"])
 def getI():
-    ser.write("AT+C\r\n".encode('utf-8'))
-    com_input = ser.readline().decode()
-    ser.readline()
     result = {}
-    if com_input:   # 如果读取结果非空，则输出
-        result = {'value': float(
-            com_input[3:7]), 'unit': 'A'}
+    try:
+        ser.write("AT+C\r\n".encode('utf-8'))
+        com_input = ser.readline().decode()
+        ser.readline()
+        if com_input:   # 如果读取结果非空，则输出
+            result = {'code': 1,'value': float(
+                com_input[3:7]), 'unit': 'A'}
+    except Exception:
+        result = {'code': 0, 'value': "设备未连接"}
     return jsonify(result)
 
 
 @ACS758_serve.route('/V', methods=["GET"])
 def getV():
-    ser.write("AT+V\r\n".encode('utf-8'))
-    com_input = ser.readline().decode()
-    ser.readline()
     result = {}
-    if com_input:   # 如果读取结果非空，则输出
-        result = {'value': float(com_input[3:7]), 'unit': 'V'}
+    try:
+        ser.write("AT+V\r\n".encode('utf-8'))
+        com_input = ser.readline().decode()
+        ser.readline()
+        if com_input:   # 如果读取结果非空，则输出
+            result = {'code': 1,'value': float(com_input[3:7]), 'unit': 'V'}
+    except Exception:
+        result = {'code': 0, 'value': "设备未连接"}
     return jsonify(result)

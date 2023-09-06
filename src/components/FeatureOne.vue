@@ -126,7 +126,6 @@
         </div>
         <div class="option">
             <button class="option_btn" @click="handleOptionOne">开始</button>
-            <button class="option_btn" @click="handleDialog">Open Dialog</button>
         </div>
         <el-dialog class="result_box" v-model="dialogVisible" title="返回结果" draggable>
             <span>
@@ -146,9 +145,10 @@
 <script setup>
 import DataTable from '../components/DataTable.vue'
 import { ref, onMounted, getCurrentInstance } from "vue"
-import fphApi from "../api/fphApi"
+import appApi from "../api/appApi"
 import ampApi from "../api/ampApi"
 import acsApi from "../api/acsApi"
+import fphApi from "../api/fphApi"
 import rigol_dg4062 from "../api/rigol_dg4062"
 import rigol_ds4014 from "../api/rigol_ds4014"
 import { sleep, formatter, dBmToVpp } from "../util/tool"
@@ -164,19 +164,19 @@ const parameter = ref('')
 
 const dialogVisible = ref(false)
 
-const DGVisaValue = ref('TCPIP0::192.168.2.15::inst0::INSTR')
-const DSVisaValue = ref('')
-const FPHVisaValue = ref('')
-const AMPVisaValue = ref('')
-const ACSVisaValue = ref('')
+const DGVisaValue = ref('TCPIP0::192.168.2.3::inst0::INSTR')
+const DSVisaValue = ref('TCPIP0::192.168.2.4::inst0::INSTR')
+const FPHVisaValue = ref('TCPIP0::192.168.2.5::inst0::INSTR')
+const AMPVisaValue = ref('COM')
+const ACSVisaValue = ref('COM')
 
 const pilotModleOne = ref('pilot_err')
 const flagOne = ref(false)
-const outputIMPValue = ref('')
+const outputIMPValue = ref(50)
 const frequencySTAValue = ref('')
 const frequencyENDValue = ref('')
 const frequencyStepValue = ref(1)
-const amplitudeSTAValue = ref(40)
+const amplitudeSTAValue = ref(-40)
 const amplitudeENDValue = ref('')
 const amplitudeStepValue = ref(0.1)
 const skewValue = ref(0)
@@ -199,10 +199,6 @@ const flagFour = ref(false)
 const pilotModleFive = ref('pilot_err')
 const flagFive = ref(false)
 
-const handleDialog = () => {
-    dialogVisible.value = true
-    getTableHeader()
-}
 const handleSave = () => {
     emitter.emit('featureOneSave')
 }
@@ -288,21 +284,24 @@ const handleACSivw = () => {
 }
 const handleOptionOne = async () => {
     dialogVisible.value = true
-    console.log('handleOptionOne', DG4062)
+    getTableHeader()
     for (let i = DG4062.startFREQ; i <= DG4062.endFREQ; i += DG4062.stepFREQ) {
-        for (let j = DG4062.startAMPL; j <= DG4062.endAMPL; j += DG4062.stepAMPL) {
-            console.log(i, Number(formatter(3).format(dBmToVpp(j))))
+        for (let j = DG4062.startAMPL; Math.abs(j) >= Math.abs(DG4062.endAMPL); j += DG4062.stepAMPL) {
             let sign = await sleep(5000, rigol_dg4062.applySIN, {
                 frequency: i,
-                amplitude: Number(formatter(3).format(dBmToVpp(j))),
+                amplitude: Number(formatter(4).format(dBmToVpp(j))),
                 skew: DG4062.skew,
                 phase: DG4062.phase
             })
-            console.log(sign)
-            emitter.emit('featureOneResult', sign)
-            // if (!Number(sign.code)) {
-            //     break;
-            // }
+            if (!Number(sign.code)) {
+                let result = await sleep(1000, appApi.FeatureOne, {
+                    frequency: i,
+                    DG_InputPower: Number(formatter(2).format(j)),
+                    FPH_MarkNum: markNumValue.value
+                })
+                emitter.emit('featureOneResult', result)
+                // break;
+            }
         }
     }
 }
@@ -479,7 +478,7 @@ const getTableHeader = () => {
     let tableHeader = []
     if (flagOne.value) {
         let propertyList = [{
-            prop: "freq",
+            prop: "frequency",
             label: "频率"
         },
         {
@@ -504,44 +503,43 @@ const getTableHeader = () => {
         tableHeader.push.apply(tableHeader, propertyList)
     }
     if (flagThree.value) {
-        let propertyList = [{
-            prop: "directI",
-            label: "直流电流"
-        },
-        {
-            prop: "directV",
-            label: "直流电压"
-        },
-        {
-            prop: "directP",
-            label: "直流功率"
-        },
-        {
-            prop: "outputP",
-            label: "输出功率"
-        }]
+        let propertyList = []
+        for (let i = 1; i <= markNumValue.value; i++) {
+            propertyList.push({
+                prop: i + "_Harmonic",
+                label: i + "谐波"
+            })
+        }
+        propertyList.push({
+            prop: "harmonicWavePoint",
+            label: "谐波分量"
+        })
+        console.log(propertyList)
         tableHeader.push.apply(tableHeader, propertyList)
     }
     if (flagFour.value) {
         let propertyList = [{
-            prop: "fundamentalWave",
-            label: "基波"
-        },
-        {
-            prop: "secondHarmonic",
-            label: "二次谐波"
-        },
-        {
-            prop: "thirdHarmonic",
-            label: "三次谐波"
-        },
-        {
-            prop: "harmonicComponent",
-            label: "谐波分量"
+            prop: "auto_amp_P",
+            label: "输出功率"
         }]
         tableHeader.push.apply(tableHeader, propertyList)
     }
-    if (flagTwo.value && flagThree.value) {
+    if (flagFive.value) {
+        let propertyList = [{
+            prop: "DcCurrent",
+            label: "直流电流"
+        },
+        {
+            prop: "DcVoltage",
+            label: "直流电压"
+        },
+        {
+            prop: "DcPower",
+            label: "直流功率"
+        }]
+        tableHeader.push.apply(tableHeader, propertyList)
+    }
+    if (flagFour.value && flagFive.value) {
         let propertyList = [{
             prop: "gain",
             label: "增益"

@@ -28,59 +28,61 @@ def FeatureOne():
     inputPower = request.values.get('DG_InputPower')
     markNum = request.values.get('FPH_MarkNum')
     result = {}
+    result['frequency'] = freq
+    result['inputPower'] = inputPower
     try:
-        result['DcCurrent'] = DcCurrent
         # 入射、反射功率计算
-        reflectedPower = 1
+        reflectedPower = 2
         incidentPower = 1
+        result['reflectedPower'] = reflectedPower
+        result['incidentPower'] = incidentPower
         # 驻波比计算
         reflectionCoefficient = math.pow(10, (reflectedPower-incidentPower)/20)
-        Standing_waveRatio = (1+reflectionCoefficient) / \
-            (1-reflectionCoefficient)
+        inputSWR = (1+reflectionCoefficient) /  (1-reflectionCoefficient)
+        result['inputSWR'] = inputSWR
         # 直流电压、电流、功率计算
         DcCurrent = json.loads(app.test_client().get(
             'http://localhost:9090/ACS758/I').text)
-        if (DcCurrent != {}):
+        if (DcCurrent['code'] == 1):
             DcCurrent = DcCurrent['value']
             result['DcCurrent'] = DcCurrent
         DcVoltage = json.loads(app.test_client().get(
             'http://localhost:9090/ACS758/V').text)
-        if (DcVoltage != {}):
+        if (DcVoltage['code'] == 1):
             DcVoltage = DcVoltage['value']
             result['DcVoltage'] = DcVoltage
-        if ((DcCurrent in result) and (DcVoltage in result)):
+        if (('DcCurrent' in result) and ('DcVoltage' in result)):
             DcPower = DcCurrent * DcVoltage
             result['DcPower'] = DcPower
-        # AUTO_AMP 电流测量
+        # AUTO_AMP 电流、电压、输出功率测量
         auto_amp_I = json.loads(app.test_client().get(
             'http://localhost:9090/AUTO_AMP/I').text)
-        if (auto_amp_I != {}):
+        if (auto_amp_I['code'] == 1):
             auto_amp_I = auto_amp_I['value']
             result['auto_amp_I'] = auto_amp_I
-        # AUTO_AMP 电压测量
         auto_amp_V = json.loads(app.test_client().get(
             'http://localhost:9090/AUTO_AMP/V').text)
-        if (auto_amp_V != {}):
+        if (auto_amp_V['code'] == 1):
             auto_amp_V = auto_amp_V['value']
             result['auto_amp_V'] = auto_amp_V
-        # 输出功率计算
-        if ((auto_amp_I in result) and (auto_amp_V in result)):
+        if (('auto_amp_I' in result) and ('auto_amp_V' in result)):
             auto_amp_P = auto_amp_I * auto_amp_V
             result['auto_amp_P'] = auto_amp_P
         # 增益计算
-        if (auto_amp_P in result):
+        if (('auto_amp_P' in result) and (auto_amp_P > 0)):
+            print(auto_amp_P)
             gain = 10 * math.log10(auto_amp_P / 0.001)-inputPower
             result['gain'] = gain
         # 效率计算
+        if (('auto_amp_P' in result) and ('DcPower' in result)):
+            efficiency = auto_amp_P * DcPower
+            result['efficiency'] = efficiency
         # 谐波读取
-        params = {
-            'num': markNum,
-        }
-        harmonicWaveList = json.loads(app.test_client().get(
-            url='http://localhost:9090/FPH/calculateMARKYR', params=params).text)
-        harmonicWavePoint=harmonicWaveList[-1]-harmonicWaveList[0]
+        harmonicWaveList = json.loads(app.test_client().get('http://localhost:9090/FPH/calculateMARKYR?num={}'.format(markNum)).text)
         result['harmonicWaveList'] = harmonicWaveList
-        result['harmonicWavePoint'] = harmonicWavePoint
+        if(harmonicWaveList[0]['code'] == 1):
+            harmonicWavePoint=harmonicWaveList[-1]['value']-harmonicWaveList[0]['value']
+            result['harmonicWavePoint'] = harmonicWavePoint
     except requests.exceptions.RequestException as e:
         print(e)
     return jsonify(result)
